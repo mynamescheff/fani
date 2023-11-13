@@ -50,46 +50,44 @@ def poker_hand(hand):
     else:
         return "High Card"
 
-# Function to write results to a CSV file in the same directory
 def write_to_csv(results, filename='poker_results.csv'):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, filename)
 
-    with open(file_path, 'w', newline='') as csvfile:
-        fieldnames = ['Hand', 'Result']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    with open(file_path, 'a', newline='') as csvfile:
+        fieldnames = ['First Card', 'Second Card', 'Third Card', 'Fourth Card', 'Fifth Card', 'Result']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_NONNUMERIC, escapechar=' ', delimiter=',')
 
         # Write header if the file is empty
-        if csvfile.tell() == 0:
+        if os.stat(file_path).st_size == 0:
             writer.writeheader()
 
         # Write results
         for result in results:
             writer.writerow(result)
 
-# Create a full deck of cards
-deck = [(card_names[rank], color) for rank in card_names for color in colors]
-
-# Function to draw 5 random cards
+# Function to draw 5 random cards as strings
 def draw_hand(deck, num_cards=5):
-    return random.sample(deck, num_cards)
+    return [f'{card[0]} {card[1]}' for card in random.sample(deck, num_cards)]
 
 # Function to display and save results
 def display_and_save_results(results):
     for result in results:
-        print(f'Hand: {result["Hand"]}')
-        print(f'Result: {result["Result"]}')
+        print(', '.join(result.values()))
         print("------")
 
     # Write results to CSV in the same directory
     write_to_csv(results)
+
+# Create a full deck of cards
+deck = [(card_names[rank], color) for rank in card_names for color in colors]
 
 # Draw and display hands five times
 results = []
 for _ in range(5):
     hand = draw_hand(deck)
     hand_result = poker_hand(hand)
-    results.append({'Hand': ', '.join([f'{card[0]} of {card[1]}' for card in hand]), 'Result': hand_result})
+    results.append({'First Card': hand[0], 'Second Card': hand[1], 'Third Card': hand[2], 'Fourth Card': hand[3], 'Fifth Card': hand[4], 'Result': hand_result})
 
 # Display and save results
 display_and_save_results(results)
