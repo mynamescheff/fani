@@ -70,24 +70,28 @@ def write_to_csv(results, filename='poker_results.csv'):
 def draw_hand(deck, num_cards=5):
     return [f'{card[0]} {card[1]}' for card in random.sample(deck, num_cards)]
 
-# Function to display and save results
-def display_and_save_results(results):
+# Function to display results
+def display_results(results):
     for result in results:
         print(', '.join(result.values()))
         print("------")
 
-    # Write results to CSV in the same directory
+# Function to save results to CSV
+def save_results(results):
     write_to_csv(results)
 
 # Create a full deck of cards
 deck = [(card_names[rank], color) for rank in card_names for color in colors]
 
-# Draw and display hands five times
+# Draw hands ten times and display the results
 results = []
-for _ in range(5):
+for _ in range(10**5):
     hand = draw_hand(deck)
     hand_result = poker_hand(hand)
     results.append({'First Card': hand[0], 'Second Card': hand[1], 'Third Card': hand[2], 'Fourth Card': hand[3], 'Fifth Card': hand[4], 'Result': hand_result})
 
-# Display and save results
-display_and_save_results(results)
+# Display results
+#display_results(results)
+
+# Save results to CSV
+save_results(results)
