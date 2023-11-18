@@ -85,7 +85,7 @@ deck = [(card_names[rank], color) for rank in card_names for color in colors]
 
 # Draw hands ten times and display the results
 results = []
-for _ in range(10**5):
+for _ in range(10**6):
     hand = draw_hand(deck)
     hand_result = poker_hand(hand)
     results.append({'First Card': hand[0], 'Second Card': hand[1], 'Third Card': hand[2], 'Fourth Card': hand[3], 'Fifth Card': hand[4], 'Result': hand_result})
