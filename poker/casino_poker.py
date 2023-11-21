@@ -60,7 +60,7 @@ def write_to_csv(results, filename='poker_results.csv'):
     file_path = os.path.join(script_dir, filename)
 
     with open(file_path, 'a', newline='') as csvfile:
-        fieldnames = ['Community Cards'] + [f'Player {i + 1}' for i in range(4)]  # Assuming 4 players
+        fieldnames = ['Community Cards'] + [f'Player {i + 1}' for i in range(4)]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_NONNUMERIC, escapechar=' ', delimiter=',')
 
         # Write header if the file is empty
@@ -71,77 +71,50 @@ def write_to_csv(results, filename='poker_results.csv'):
         writer.writerow(results)
 
 # Function to simulate a round of Texas Hold'em
-def simulate_texas_holdem_round(deck, round_number):
-    community_cards = []
+def simulate_texas_holdem_round(deck, round_num, players_hands=None, community_cards=None):
+    if not players_hands:
+        # Draw hole cards for each player only if not provided
+        players_hands = {f'Player {i + 1}': draw_hand(deck, 2) for i in range(4)}
 
-    # Draw 2 hole cards for each player
-    players = {f'Player {i + 1}': draw_hand(deck, 2) for i in range(4)}
+    # Draw community cards only if not provided or if it's the first round
+    if not community_cards or round_num == 1:
+        community_cards = draw_hand(deck, 3)
+    elif round_num == 2:
+        # Draw one additional community card for the second round
+        community_cards.append(deck.pop())
+    elif round_num == 3:
+        # Draw the final additional community card for the third round
+        community_cards.append(deck.pop())
 
-    # Save results with only hole cards
-    results = {'Community Cards': ''}
-    for player, hole_cards in players.items():
-        results[player] = f'{", ".join(hole_cards)}'
+    # Results dictionary
+    results = {'Community Cards': ', '.join([f"{card[0]} of {card[1]}" for card in community_cards])}
 
-    # Save results
-    write_to_csv(results)
+    # Evaluate player hands
+    for player, hole_cards in players_hands.items():
+        results[player] = ', '.join([f"{card[0]} of {card[1]}" for card in hole_cards])
 
-    # Draw the flop: three face-up community cards
-    community_cards.extend(draw_hand(deck, 3))
+    # Write results to CSV
+    write_to_csv(results, f'round_{round_num}_results.csv')
 
-    # Save results after the flop
-    results = {'Community Cards': ', '.join(community_cards)}
-    for player, hole_cards in players.items():
-        total_hand = hole_cards + community_cards
-        hand_result = poker_hand(total_hand)
-        results[player] = f'{", ".join(total_hand)} ({hand_result})'
+    # Display results
+    print(f'Round {round_num} Results:')
+    print(f'Community Cards: {results["Community Cards"]}')
+    for player, hole_cards_str in results.items():
+        if player != 'Community Cards':
+            print(f'{player}: {hole_cards_str}')
 
-    # Save results
-    write_to_csv(results)
+    return players_hands, community_cards
 
-    # Draw the turn: a single face-up community card
-    community_cards.extend(draw_hand(deck, 1))
-
-    # Save results after the turn
-    results = {'Community Cards': ', '.join(community_cards)}
-    for player, hole_cards in players.items():
-        total_hand = hole_cards + community_cards
-        hand_result = poker_hand(total_hand)
-        results[player] = f'{", ".join(total_hand)} ({hand_result})'
-
-    # Save results
-    write_to_csv(results)
-
-    # Draw the river: a single face-up community card
-    community_cards.extend(draw_hand(deck, 1))
-
-    # Save results after the river
-    results = {'Community Cards': ', '.join(community_cards)}
-    for player, hole_cards in players.items():
-        total_hand = hole_cards + community_cards
-        hand_result = poker_hand(total_hand)
-        results[player] = f'{", ".join(total_hand)} ({hand_result})'
-
-    # Save results
-    write_to_csv(results)
-
-    # Display round information
-    print(f"\nRound {round_number} Results:")
-    print(", ".join([f'{player}: {hand_result}' for player, hand_result in results.items()]))
-
-# Main game loop
+# Function to run the Texas Hold'em simulation
 def main():
-    # Create a full deck of cards
     deck = [(card_names[rank], color) for rank in card_names for color in colors]
 
-    # Number of rounds
-    num_rounds = 3
+    # Initialize players' hands and community cards
+    players_hands, community_cards = None, None
 
-    # Play multiple rounds
-    for round_num in range(1, num_rounds + 1):
-        input(f"\nPress Enter to start Round {round_num}...")
-        simulate_texas_holdem_round(deck, round_num)
-
-    print("\nAll rounds completed. Results saved to 'poker_results.csv'.")
+    for round_num in range(1, 4):
+        players_hands, community_cards = simulate_texas_holdem_round(deck, round_num, players_hands, community_cards)
+        input('Press Enter to continue...')
 
 if __name__ == "__main__":
     main()
