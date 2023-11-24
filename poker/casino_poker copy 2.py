@@ -56,12 +56,12 @@ def poker_hand(hand):
         return "High Card"
 
 # Function to write results to a CSV file in the same directory
-def write_to_csv(results, filename='poker_results2.csv'):
+def write_to_csv(results, filename='poker_results.csv'):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, filename)
 
     with open(file_path, 'a', newline='') as csvfile:
-        fieldnames = ['Round'] + ['Community Cards'] + [f'Player {i + 1}' for i in range(4)]
+        fieldnames = ['Round', 'Community Cards'] + [f'Player {i + 1}' for i in range(4)] + ['Win Percentages']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_NONNUMERIC, escapechar=' ', delimiter=',')
 
         # Write header if the file is empty
@@ -88,16 +88,20 @@ def calculate_win_percentages(players_hands, community_cards):
         for possible_community_cards in possible_winning_hands:
             combined_hand = player_hand + list(possible_community_cards)
             player_rank = poker_hand(combined_hand)
-            other_players_hands = [hand + list(possible_community_cards) for player, hand in players_hands.items() if player != player]
-            other_players_ranks = [poker_hand(hand) for hand in other_players_hands]
 
-            if player_rank == max(other_players_ranks):
+            # Check if there are other players in the game
+            other_players_hands = [hand + list(possible_community_cards) for p, hand in players_hands.items() if p != player]
+            if other_players_hands:
+                other_players_ranks = [poker_hand(hand) for hand in other_players_hands]
+                if player_rank == max(other_players_ranks):
+                    player_wins += 1
+            else:
+                # No other players, player always wins
                 player_wins += 1
 
         win_percentages[player] = (player_wins / total_combinations) * 100 if total_combinations > 0 else 0
 
     return win_percentages
-
 
 # Function to simulate a round of Texas Hold'em
 def simulate_texas_holdem_round(deck, round_num, players_hands=None, community_cards=None):
